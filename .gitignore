@@ -1,0 +1,14 @@
+# App settings
+appsettings.json
+appsettings.*.json
+
+# Build outputs
+bin/
+obj/
+
+# VS Code History
+.history/
+
+# User files
+*.user
+*.suo
