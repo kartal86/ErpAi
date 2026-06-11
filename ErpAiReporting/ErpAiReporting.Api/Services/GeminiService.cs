@@ -10,7 +10,6 @@ public class GeminiService
     private readonly HttpClient _http;
     private readonly GeminiOptions _options;
 
-    // Northwind şeması — Gemini bunu bilerek SQL üretecek
     private const string NorthwindSchema = """
         PostgreSQL veritabanı. Tablolar:
         - customers (customer_id, company_name, contact_name, city, country)
@@ -22,7 +21,6 @@ public class GeminiService
         - suppliers (supplier_id, company_name, city, country)
         """;
 
-    // Constructor injection — DI container bunu otomatik dolduracak
     public GeminiService(HttpClient http, IOptions<GeminiOptions> options)
     {
         _http = http;
@@ -38,13 +36,15 @@ public class GeminiService
             {NorthwindSchema}
             
             Kurallar:
-            - SADECE SELECT sorgusu yaz, başka hiçbir şey yok
-            - Açıklama, yorum, markdown ekleme
-            - Sadece SQL kodunu döndür
+            - SADECE SELECT sorgusu yaz, başka hiçbir şey yazma
+            - Açıklama, yorum, markdown kod bloğu ekleme
+            - ``` veya ```sql gibi işaretler kullanma
+            - Sadece düz SQL kodunu döndür, ilk karakter SELECT olmalı
             - PostgreSQL syntax kullan (LIMIT, NOW(), COALESCE vs.)
             """;
 
-        return await CallGeminiAsync(naturalLanguageQuery, systemPrompt);
+        var sql = await CallGeminiAsync(naturalLanguageQuery, systemPrompt);
+        return CleanSql(sql);
     }
 
     public async Task<string> GenerateInsightAsync(
@@ -66,7 +66,6 @@ public class GeminiService
     private async Task<string> CallGeminiAsync(string userMessage, string systemPrompt)
     {
         var url = $"{_options.BaseUrl}/{_options.Model}:generateContent?key={_options.ApiKey}";
-        Console.WriteLine($"Gemini URL: {_options.BaseUrl}/{_options.Model}:generateContent"); // key'i loglama
 
         var requestBody = new
         {
@@ -80,7 +79,7 @@ public class GeminiService
             },
             generationConfig = new
             {
-                temperature = 0.1,   // Düşük = tutarlı çıktı (SQL için önemli)
+                temperature = 0.1,
                 maxOutputTokens = 1024
             }
         };
@@ -89,16 +88,14 @@ public class GeminiService
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
         var response = await _http.PostAsync(url, content);
-        var rawResponse = await response.Content.ReadAsStringAsync(); // Sondan eklendi
 
-        Console.WriteLine("STATUS:");
-        Console.WriteLine(response.StatusCode);
-
-        Console.WriteLine("BODY:");
-        Console.WriteLine(rawResponse);
-
-        
-        response.EnsureSuccessStatusCode();
+        // Hata durumunda detaylı mesaj göster
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorBody = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException(
+                $"Gemini API hatası [{response.StatusCode}]: {errorBody}");
+        }
 
         var result = await response.Content.ReadFromJsonAsync<JsonElement>();
 
@@ -108,5 +105,15 @@ public class GeminiService
             .GetProperty("parts")[0]
             .GetProperty("text")
             .GetString() ?? "";
+    }
+
+    // Gemini bazen kurallara rağmen markdown döndürür
+    // Bu metod her durumda temiz SQL döndürür
+    private static string CleanSql(string sql)
+    {
+        return sql
+            .Replace("```sql", "")
+            .Replace("```", "")
+            .Trim();
     }
 }

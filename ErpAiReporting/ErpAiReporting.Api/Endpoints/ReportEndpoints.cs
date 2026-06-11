@@ -4,6 +4,8 @@ using ErpAiReporting.Api.Models.Responses;
 using ErpAiReporting.Api.Services;
 
 namespace ErpAiReporting.Api.Endpoints;
+using Npgsql;
+
 
 // Neden ayrı dosya: Tüm endpoint'leri Program.cs'e yazmak
 // proje büyüdükçe okunaksız hale gelir.
@@ -37,9 +39,22 @@ public static class ReportEndpoints
                 Console.WriteLine("3- SQL çalıştı");
                 Console.WriteLine($"Satır sayısı: {results.Count}");
             }
+            catch (NpgsqlException ex)
+            {
+                var userMessage = ex.SqlState switch
+                {
+                    "42P01" => "Tablo bulunamadı. Şema bilgisi güncel olmayabilir.",
+                    "42703" => "Kolon bulunamadı. Sorguyu kontrol edin.",
+                    "42601" => "SQL syntax hatası.",
+                    "53300" => "Veritabanı bağlantı limiti aşıldı.",
+                    _ => $"Veritabanı hatası: {ex.Message}"
+                };
+
+                return Results.BadRequest(new QueryResponse(sql, [], "", false, userMessage));
+            }
             catch (Exception ex)
             {
-                return Results.BadRequest(new QueryResponse(sql, [], "", false, $"Sorgu hatası: {ex.Message}"));
+                return Results.BadRequest(new QueryResponse(sql, [], "", false, $"Beklenmeyen hata: {ex.Message}"));
             }
 
             // Adım 4: Sonucu yorumla
