@@ -1,56 +1,24 @@
-import { useState } from "react";
-import QueryInput from "./components/QueryInput";
-import SqlDisplay from "./components/SqlDisplay";
-import ResultsTable from "./components/ResultsTable";
-import ResultsChart from "./components/ResultsChart";
-import InsightBox from "./components/InsightBox";
-import { queryDatabase } from "./services/api";
-import "./App.css";
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import AppLayout from './components/layout/AppLayout';
+import DashboardPage from './pages/DashboardPage';
+import AiReportingPage from './pages/AiReportingPage';
 
-export default function App() {
-  // Tüm uygulama state'i burada — child component'lar props ile alır
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [result, setResult] = useState(null);
-
-  async function handleQuery(query) {
-    setIsLoading(true);
-    setError(null);
-    setResult(null); // Önceki sonucu temizle
-
-    try {
-      const data = await queryDatabase(query);
-      setResult(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false); // Her durumda loading'i kapat
-    }
-  }
-
+function App() {
   return (
-    <div className="app">
-      <header>
-        <h1>🗄️ ERP AI Raporlama</h1>
-        <p>Doğal dille veritabanınızı sorgulayın</p>
-      </header>
-
-      <main>
-        <QueryInput onSubmit={handleQuery} isLoading={isLoading} />
-
-        {/* Hata varsa göster */}
-        {error && <div className="error-box">❌ {error}</div>}
-
-        {/* Sonuç varsa göster */}
-        {result && (
-          <>
-            <SqlDisplay sql={result.generatedSql} />
-            <ResultsChart results={result.results} />
-            <ResultsTable results={result.results} />
-            <InsightBox insight={result.insight} />
-          </>
-        )}
-      </main>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<AppLayout />}>
+          <Route index element={<DashboardPage />} />
+          <Route path="ai-reporting" element={<AiReportingPage />} />
+          <Route path="customers" element={<div className="p-8">Müşteriler (Yapım Aşamasında)</div>} />
+          <Route path="orders" element={<div className="p-8">Siparişler (Yapım Aşamasında)</div>} />
+          <Route path="products" element={<div className="p-8">Ürünler (Yapım Aşamasında)</div>} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
+      </Routes>
+    </Router>
   );
 }
+
+export default App;
