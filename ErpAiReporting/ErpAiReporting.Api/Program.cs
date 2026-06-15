@@ -4,17 +4,20 @@ using ErpAiReporting.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Config'i typed class'a bağla
+// 1. Swagger servisleri
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+// 2. Config
 builder.Services.Configure<GeminiOptions>(
     builder.Configuration.GetSection(GeminiOptions.SectionName));
 
-// 2. Servisleri DI container'a kaydet
-// AddHttpClient → HttpClient'ı doğru şekilde yönetir (socket exhaustion önler)
+// 3. DI
 builder.Services.AddHttpClient<GeminiService>();
 builder.Services.AddScoped<DatabaseService>();
 builder.Services.AddSingleton<SqlValidatorService>();
 
-// 3. CORS — React localhost:5173'ten istek atacak
+// 4. CORS
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
@@ -25,9 +28,21 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// 5. Swagger middleware (KRİTİK)
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "ERP AI Reporting API V1");
+    c.RoutePrefix = "swagger"; // /swagger URL’i
+});
+
+// 6. CORS
 app.UseCors();
 
-// 4. Endpoint'leri bağla
+// 7. Endpoints
 app.MapReportEndpoints();
+
+// 8. Root test endpoint (önerilir)
+app.MapGet("/", () => "ERP AI API running 🚀");
 
 app.Run();
