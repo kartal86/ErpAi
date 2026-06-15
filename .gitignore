@@ -1,6 +1,6 @@
 # App settings
 appsettings.json
-appsettings.*.json
+
 
 # Build outputs
 bin/
