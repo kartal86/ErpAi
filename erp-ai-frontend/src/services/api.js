@@ -1,6 +1,8 @@
 const API_URL = import.meta.env.VITE_API_URL;
 console.log("API_URL:", API_URL);
 export async function queryDatabase(naturalLanguageQuery) {
+  console.log("API ÇAĞRILIYOR");
+  console.log(naturalLanguageQuery);
   const response = await fetch(`${API_URL}/query`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
