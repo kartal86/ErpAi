@@ -41,6 +41,7 @@ public static class ReportEndpoints
             }
             catch (NpgsqlException ex)
             {
+                Console.WriteLine($"NPGSQL HATA: {ex.SqlState} - {ex.Message}");
                 var userMessage = ex.SqlState switch
                 {
                     "42P01" => "Tablo bulunamadı. Şema bilgisi güncel olmayabilir.",
@@ -54,6 +55,7 @@ public static class ReportEndpoints
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"GENEL HATA: {ex.GetType().Name} - {ex.Message}");
                 return Results.BadRequest(new QueryResponse(sql, [], "", false, $"Beklenmeyen hata: {ex.Message}"));
             }
 
