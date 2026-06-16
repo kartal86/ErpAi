@@ -4,22 +4,26 @@ namespace ErpAiReporting.Api.Services;
 
 public class DatabaseService
 {
-    private readonly NpgsqlDataSource _dataSource;
+    private readonly string _connectionString;
 
     public DatabaseService(IConfiguration config)
     {
-        var connectionString = config.GetConnectionString("DefaultConnection")!;
-        
-        // NpgsqlDataSource — bağlantıları doğru yönetir, her seferinde yeni bağlantı açmaz
-        var builder = new NpgsqlDataSourceBuilder(connectionString);
-        _dataSource = builder.Build();
+        _connectionString = config.GetConnectionString("DefaultConnection")!;
+        // Pool'u tamamen kapat — Supabase free tier pool yönetimini kendisi yapıyor
+        NpgsqlConnection.ClearAllPools();
     }
 
     public async Task<List<Dictionary<string, object?>>> ExecuteQueryAsync(string sql)
     {
         var results = new List<Dictionary<string, object?>>();
 
-        await using var conn = await _dataSource.OpenConnectionAsync();
+        // Her sorguda temiz bağlantı aç, bitince kapat
+        // Pool disable ettiğimiz için overhead yok
+        var connString = _connectionString + ";No Reset On Close=true;Pooling=false";
+        
+        await using var conn = new NpgsqlConnection(connString);
+        await conn.OpenAsync();
+
         await using var cmd = new NpgsqlCommand(sql, conn);
         cmd.CommandTimeout = 30;
 
