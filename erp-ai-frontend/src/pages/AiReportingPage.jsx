@@ -3,8 +3,6 @@ import { Search, Code, BarChart2, Table as TableIcon, Sparkles, ChevronDown, Che
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { queryDatabase } from "../services/api";
 
-const [result, setResult] = useState(null);
-const [error, setError] = useState("");
 
 const SUGGESTED_QUERIES = [
   "Geçen ayki en karlı 5 ürünü listele",
