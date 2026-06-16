@@ -29,7 +29,13 @@ export default function AiReportingPage() {
   const [viewType, setViewType] = useState('chart');
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
-  const chartData = result?.data || [];
+  const chartData = result?.results || [];
+  const numericKey = chartData.length > 0 
+    ? Object.keys(chartData[0]).find(k => typeof chartData[0][k] === 'number')
+    : null;
+  const labelKey = chartData.length > 0
+    ? Object.keys(chartData[0]).find(k => typeof chartData[0][k] === 'string')
+    : null;
 
   const handleSearch = async (e) => {
         e.preventDefault();
@@ -54,15 +60,22 @@ export default function AiReportingPage() {
         }
     };
 
-  const handleSuggestClick = (q) => {
-    setQuery(q);
-    setIsSearching(true);
-    setHasResult(false);
-    setTimeout(() => {
-      setIsSearching(false);
-      setHasResult(true);
-    }, 1200);
-  }
+  // ✅ Gerçek API çağrısı
+    const handleSuggestClick = async (q) => {
+        setQuery(q);
+        try {
+            setIsSearching(true);
+            setError("");
+            setHasResult(false);
+            const response = await queryDatabase(q);
+            setResult(response);
+            setHasResult(true);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setIsSearching(false);
+        }
+    }
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-8rem)]">
@@ -165,33 +178,36 @@ export default function AiReportingPage() {
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} dy={10} />
+                      <XAxis dataKey={labelKey} axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} dy={10} />
                       <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} tickFormatter={(value) => `$${value/1000}k`} />
                       <Tooltip 
                         cursor={{fill: '#f8fafc'}}
                         contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)' }}
                         formatter={(value) => [`$${value.toLocaleString()}`, 'Kar']}
                       />
-                      <Bar dataKey="kar" fill="#4f46e5" radius={[4, 4, 0, 0]} maxBarSize={50} />
+                      <Bar dataKey={numericKey} fill="#4f46e5" radius={[4, 4, 0, 0]} maxBarSize={50} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm text-left">
-                    <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200">
-                      <tr>
-                        <th className="px-4 py-3">Ürün Adı</th>
-                        <th className="px-4 py-3 text-right">Toplam Kar</th>
-                      </tr>
+                    {/* Tablo header — dinamik */}
+                    <thead>
+                    <tr>
+                        {chartData.length > 0 && Object.keys(chartData[0]).map(col => (
+                        <th key={col} className="px-4 py-3">{col}</th>
+                        ))}
+                    </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {chartData.map((item, idx) => (
+                    <tbody>
+                    {chartData.map((row, idx) => (
                         <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                          <td className="px-4 py-3 font-medium text-slate-800">{item.name}</td>
-                          <td className="px-4 py-3 text-right tabular-nums text-slate-600">${item.kar.toLocaleString()}</td>
+                        {Object.values(row).map((val, i) => (
+                            <td key={i} className="px-4 py-3 text-slate-700">{val}</td>
+                        ))}
                         </tr>
-                      ))}
+                    ))}
                     </tbody>
                   </table>
                 </div>
@@ -199,15 +215,16 @@ export default function AiReportingPage() {
             </div>
 
             {/* AI Callout */}
+            {/* AI Callout */}
+            {result?.insight && (
             <div className="bg-slate-100 border-l-4 border-indigo-600 rounded-r-xl p-4 flex gap-3 items-start shadow-sm mt-2">
-              <Sparkles className="text-indigo-600 shrink-0 mt-0.5" size={20} />
-              <div>
+                <Sparkles className="text-indigo-600 shrink-0 mt-0.5" size={20} />
+                <div>
                 <h4 className="font-semibold text-slate-900 mb-1">Yapay Zeka Analizi</h4>
-                <p className="text-sm text-slate-600 leading-relaxed">
-                  Geçtiğimiz ay içerisinde <strong className="text-slate-800">Enterprise Lisans</strong> satışları, toplam karlılığın <strong className="text-slate-800">%39</strong>'unu oluşturarak en iyi performansı gösterdi. Danışmanlık hizmetlerinde geçen aya göre hafif bir düşüş eğilimi var, eğitim paketleriyle çapraz satış stratejisi uygulanabilir.
-                </p>
-              </div>
+                <p className="text-sm text-slate-600 leading-relaxed">{result.insight}</p>
+                </div>
             </div>
+            )}
 
           </div>
         )}
