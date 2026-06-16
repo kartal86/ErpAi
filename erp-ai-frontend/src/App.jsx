@@ -4,7 +4,10 @@ import AppLayout from './components/layout/AppLayout';
 import DashboardPage from './pages/DashboardPage';
 import AiReportingPage from './pages/AiReportingPage';
 
+console.log("APP YÜKLENDİ");
+
 function App() {
+  console.log("APP RENDER EDİLİYOR");
   return (
     <Router>
       <Routes>
