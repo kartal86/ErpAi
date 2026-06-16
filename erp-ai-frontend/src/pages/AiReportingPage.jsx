@@ -19,12 +19,16 @@ const MOCK_DATA = [
   { name: 'Eğitim', kar: 8000 }
 ];
 
+const chartData = result?.data || [];
+
 export default function AiReportingPage() {
   const [query, setQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [hasResult, setHasResult] = useState(false);
   const [showSql, setShowSql] = useState(false);
   const [viewType, setViewType] = useState('chart');
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState("");
 
   const handleSearch = async (e) => {
         e.preventDefault();
@@ -158,7 +162,7 @@ export default function AiReportingPage() {
               {viewType === 'chart' ? (
                 <div className="h-72 w-full">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={MOCK_DATA} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
+                    <BarChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                       <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} dy={10} />
                       <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} tickFormatter={(value) => `$${value/1000}k`} />
@@ -181,7 +185,7 @@ export default function AiReportingPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {MOCK_DATA.map((item, idx) => (
+                      {chartData.map((item, idx) => (
                         <tr key={idx} className="hover:bg-slate-50 transition-colors">
                           <td className="px-4 py-3 font-medium text-slate-800">{item.name}</td>
                           <td className="px-4 py-3 text-right tabular-nums text-slate-600">${item.kar.toLocaleString()}</td>
