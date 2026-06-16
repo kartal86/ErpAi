@@ -19,7 +19,7 @@ const MOCK_DATA = [
   { name: 'Eğitim', kar: 8000 }
 ];
 
-const chartData = result?.data || [];
+
 
 export default function AiReportingPage() {
   const [query, setQuery] = useState('');
@@ -29,6 +29,7 @@ export default function AiReportingPage() {
   const [viewType, setViewType] = useState('chart');
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
+  const chartData = result?.data || [];
 
   const handleSearch = async (e) => {
         e.preventDefault();
