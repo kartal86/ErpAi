@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { Search, Code, BarChart2, Table as TableIcon, Sparkles, ChevronDown, ChevronRight, CornerDownLeft } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { queryDatabase } from "../services/api";
+
+const [result, setResult] = useState(null);
+const [error, setError] = useState("");
 
 const SUGGESTED_QUERIES = [
   "Geçen ayki en karlı 5 ürünü listele",
@@ -24,19 +28,28 @@ export default function AiReportingPage() {
   const [showSql, setShowSql] = useState(false);
   const [viewType, setViewType] = useState('chart');
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (!query.trim()) return;
-    
-    setIsSearching(true);
-    setHasResult(false);
-    
-    // Fake API Call
-    setTimeout(() => {
-      setIsSearching(false);
-      setHasResult(true);
-    }, 1200);
-  };
+  const handleSearch = async (e) => {
+        e.preventDefault();
+
+        if (!query.trim()) return;
+
+        try {
+            setIsSearching(true);
+            setError("");
+            setHasResult(false);
+
+            const response = await queryDatabase(query);
+
+            console.log(response);
+
+            setResult(response);
+            setHasResult(true);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setIsSearching(false);
+        }
+    };
 
   const handleSuggestClick = (q) => {
     setQuery(q);
