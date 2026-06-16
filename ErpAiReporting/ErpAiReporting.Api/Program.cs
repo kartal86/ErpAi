@@ -21,7 +21,10 @@ builder.Services.AddSingleton<SqlValidatorService>();
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
-        policy.AllowAnyOrigin()
+        policy.WithOrigins(
+            "http://localhost:5173",
+            "https://erp-ai-tau.vercel.app/"  // Vercel URL'ini buraya yaz
+        )
               .AllowAnyHeader()
               .AllowAnyMethod());
 });
