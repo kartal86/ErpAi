@@ -23,7 +23,7 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
         policy.WithOrigins(
             "http://localhost:5173",
-            "https://erp-ai-tau.vercel.app/"  // Vercel URL'ini buraya yaz
+            "https://erp-ai-tau.vercel.app"  
         )
               .AllowAnyHeader()
               .AllowAnyMethod());
