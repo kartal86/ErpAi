@@ -16,7 +16,7 @@ function App() {
           <Route path="ai-reporting" element={<AiReportingPage />} />
           <Route path="customers" element={<div className="p-8">Müşteriler (Yapım Aşamasında)</div>} />
           <Route path="orders" element={<div className="p-8">Siparişler (Yapım Aşamasında)</div>} />
-          <Route path="products" element={<div className="p-8">Ürünler (Yapım Aşamasında)</div>} />
+          <Route path="products" element={<div className="p-8">Ürünler (Yapım Aşamasında) Test deneme</div>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
