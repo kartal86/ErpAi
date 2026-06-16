@@ -14,7 +14,7 @@ builder.Services.Configure<GeminiOptions>(
 
 // 3. DI
 builder.Services.AddHttpClient<GeminiService>();
-builder.Services.AddScoped<DatabaseService>();
+builder.Services.AddSingleton<DatabaseService>();
 builder.Services.AddSingleton<SqlValidatorService>();
 
 // 4. CORS
